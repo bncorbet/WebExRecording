@@ -11,16 +11,20 @@ sjNBRstor = 'https://cignavirtual.webex.com/nbr/services/NBRStorageService'
 sjNBRsvc = 'https://cignavirtual.webex.com/nbr/services/nbrXMLService'
 
 siteID = '325282'
-userID = 'M38430'
-userPW = 'Tobyrocks222!'
+userID = 'recording'
+userPW = 'Fall2017'
 recordID = '88791567'
 
 output_path = "output"
 
 etLstRecording = etree.parse('wbx.LstRecording.xml').getroot()
+#print etLstRecording
 etNBRRecordIdList = etree.parse('wbx.getNBRRecordIdList.xml').getroot()
+#print etNBRRecordIdList
 etStorageAccessTicket = etree.parse('wbx.getStorageAccessTicket.xml').getroot()
+#print etStorageAccessTicket
 etDlNbrStorageFile = etree.parse('wbx.downloadNBRStorageFile.xml').getroot()
+#print etDlNbrStorageFile
 
 stXMLheaders = {'Content-Type': 'text/xml'}
 stSOAPheaders = {'Content-Type': 'text/xml', 'SOAPAction': ""}
@@ -33,12 +37,17 @@ if __name__ == "__main__":
         os.makedirs(output_path)
 
     #Get recording info and put into text files in directories
-    etLstRecording[0][0][2].text = siteID
+    print etLstRecording[0][0][2].text
     etLstRecording[0][0][0].text = userID
     etLstRecording[0][0][1].text = userPW
+    etLstRecording[0][0][2].text = siteID
+    print etLstRecording[0][0][2].text
+
     rLstRecording = requests.post(wbxXMLsvc, data=etree.tostring(etLstRecording), headers=stXMLheaders)
+    print "etLstRecording", etree.tostring(etLstRecording)
+    print rLstRecording # This will return the response
     docLstRecording = etree.fromstring(rLstRecording.text.encode('utf-8'), parser=parser)
-    with open('output/LstRecording.xml', 'bw+') as outLstRecording:
+    with open('output/LstRecording.xml', 'w+') as outLstRecording:
         outLstRecording.write(etree.tostring(docLstRecording, pretty_print=True))
     
     #Get complete RecordID list
@@ -48,6 +57,7 @@ if __name__ == "__main__":
     etStorageAccessTicket[1][0][1].text = userID
     etStorageAccessTicket[1][0][2].text = userPW
     rStorageAccessTicket = requests.post(vaNBRstor, data=etree.tostring(etStorageAccessTicket), headers=stSOAPheaders)
+    print "Storage Access Ticket is:", rStorageAccessTicket
     rSATxml = etree.fromstring(rStorageAccessTicket.text.encode('utf-8'), parser=parser)
     sessionSAT = rSATxml[0][0][0].text
 
