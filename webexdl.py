@@ -38,7 +38,7 @@ if __name__ == "__main__":
     etLstRecording[0][0][1].text = userPW
     rLstRecording = requests.post(wbxXMLsvc, data=etree.tostring(etLstRecording), headers=stXMLheaders)
     docLstRecording = etree.fromstring(rLstRecording.text.encode('utf-8'), parser=parser)
-    with open('output/LstRecording.xml', 'w+') as outLstRecording:
+    with open('output/LstRecording.xml', 'bw+') as outLstRecording:
         outLstRecording.write(etree.tostring(docLstRecording, pretty_print=True))
     
     #Get complete RecordID list
