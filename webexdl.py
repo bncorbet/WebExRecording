@@ -5,15 +5,15 @@ import requests
 import os
 
 wbxXMLsvc = 'https://cignavirtual.webex.com/WBXService/XMLService'
-vaNBRstor = 'https://cignavirtual.webex.com/nbr/services/NBRStorageService'
-vaNBRsvc = 'https://cignavirtual.webex.com/nbr/services/nbrXMLService'
-sjNBRstor = 'https://cignavirtual.webex.com/nbr/services/NBRStorageService'
-sjNBRsvc = 'https://cignavirtual.webex.com/nbr/services/nbrXMLService'
+vaNBRstor = 'https://nva1wss.webex.com/nbr/services/NBRStorageService'
+vaNBRsvc = 'https://nva1wss.webex.com/nbr/services/nbrXMLService'
+sjNBRstor = 'https://nsj1wss.webex.com/nbr/services/NBRStorageService'
+sjNBRsvc = 'https://nsj1wss.webex.com/nbr/services/nbrXMLService'
 
 siteID = '325282'
 userID = 'recording'
 userPW = 'Fall2017'
-recordID = '88791567'
+recordID = '43549082'
 
 output_path = "output"
 
@@ -37,15 +37,15 @@ if __name__ == "__main__":
         os.makedirs(output_path)
 
     #Get recording info and put into text files in directories
-    print etLstRecording[0][0][2].text
+    #print etLstRecording[0][0][2].text
     etLstRecording[0][0][0].text = userID
     etLstRecording[0][0][1].text = userPW
     etLstRecording[0][0][2].text = siteID
-    print etLstRecording[0][0][2].text
+    #print etLstRecording[0][0][2].text
 
     rLstRecording = requests.post(wbxXMLsvc, data=etree.tostring(etLstRecording), headers=stXMLheaders)
-    print "etLstRecording", etree.tostring(etLstRecording)
-    print rLstRecording # This will return the response
+    #print "etLstRecording", etree.tostring(etLstRecording)
+    #print rLstRecording # This will return the response
     docLstRecording = etree.fromstring(rLstRecording.text.encode('utf-8'), parser=parser)
     with open('output/LstRecording.xml', 'w+') as outLstRecording:
         outLstRecording.write(etree.tostring(docLstRecording, pretty_print=True))
@@ -57,9 +57,10 @@ if __name__ == "__main__":
     etStorageAccessTicket[1][0][1].text = userID
     etStorageAccessTicket[1][0][2].text = userPW
     rStorageAccessTicket = requests.post(vaNBRstor, data=etree.tostring(etStorageAccessTicket), headers=stSOAPheaders)
-    print "Storage Access Ticket is:", rStorageAccessTicket
+    print "Storage Access Ticket Response:", rStorageAccessTicket
     rSATxml = etree.fromstring(rStorageAccessTicket.text.encode('utf-8'), parser=parser)
     sessionSAT = rSATxml[0][0][0].text
+    print sessionSAT
 
     #Download NBR Storage File
     etDlNbrStorageFile[1][0][2].text = sessionSAT
@@ -69,11 +70,12 @@ if __name__ == "__main__":
     etDlNbrStorageFile[1][0][1].text = recordID
     etDlNbrStorageFile[1][0][2].text = sessionSAT
     rDlNbrStorageFile = requests.post(vaNBRstor, data=etree.tostring(etDlNbrStorageFile), headers=stSOAPheaders, stream=True)
-    dlFile = open('output/dlFile.zip', 'wb')
+    dlFile = open('output/'  + recordID + '.txt', 'wb')
     for chunk in rDlNbrStorageFile.iter_content(chunk_size=512):
         if chunk:
             dlFile.write(chunk)
-    f = open('output/tempfile', 'rb').read().split('\r\n\r\n')
-    arf = open('output/recording.arf', 'wb')
+    dlFile.close()
+    f = open('output/'  + recordID + '.txt', 'rb').read().split('\r\n\r\n')
+    arf = open('output/' + recordID + '.arf', 'wb')
     arf.write(f[3])
-    os.remove('output/tempfile')
+    os.remove('output/'  + recordID + '.txt')
