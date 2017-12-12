@@ -4,34 +4,34 @@ from lxml import etree
 import requests
 import os
 
-wbxXMLsvc = 'https://cignavirtual.webex.com/WBXService/XMLService'
-vaNBRstor = 'https://nva1wss.webex.com/nbr/services/NBRStorageService'
-vaNBRsvc = 'https://nva1wss.webex.com/nbr/services/nbrXMLService'
-sjNBRstor = 'https://nsj1wss.webex.com/nbr/services/NBRStorageService'
-sjNBRsvc = 'https://nsj1wss.webex.com/nbr/services/nbrXMLService'
+def downloader(recordID, recordingName,basename):
+    wbxXMLsvc = 'https://cignavirtual.webex.com/WBXService/XMLService'
+    vaNBRstor = 'https://nva1wss.webex.com/nbr/services/NBRStorageService'
+    vaNBRsvc = 'https://nva1wss.webex.com/nbr/services/nbrXMLService'
+    sjNBRstor = 'https://nsj1wss.webex.com/nbr/services/NBRStorageService'
+    sjNBRsvc = 'https://nsj1wss.webex.com/nbr/services/nbrXMLService'
 
-siteID = '325282'
-userID = 'recording'
-userPW = 'Fall2017'
-recordID = '43549082'
+    siteID = '325282'
+    userID = 'recording'
+    userPW = 'Fall2017'
+    #recordID = '86343502'
+    #recordingName = 'testrecording'
 
-output_path = "output"
+    output_path = "output" + '/' + basename
 
-etLstRecording = etree.parse('wbx.LstRecording.xml').getroot()
-#print etLstRecording
-etNBRRecordIdList = etree.parse('wbx.getNBRRecordIdList.xml').getroot()
-#print etNBRRecordIdList
-etStorageAccessTicket = etree.parse('wbx.getStorageAccessTicket.xml').getroot()
-#print etStorageAccessTicket
-etDlNbrStorageFile = etree.parse('wbx.downloadNBRStorageFile.xml').getroot()
-#print etDlNbrStorageFile
+    etLstRecording = etree.parse('wbx.LstRecording.xml').getroot()
+    #print etLstRecording
+    etNBRRecordIdList = etree.parse('wbx.getNBRRecordIdList.xml').getroot()
+    #print etNBRRecordIdList
+    etStorageAccessTicket = etree.parse('wbx.getStorageAccessTicket.xml').getroot()
+    #print etStorageAccessTicket
+    etDlNbrStorageFile = etree.parse('wbx.downloadNBRStorageFile.xml').getroot()
+    #print etDlNbrStorageFile
 
-stXMLheaders = {'Content-Type': 'text/xml'}
-stSOAPheaders = {'Content-Type': 'text/xml', 'SOAPAction': ""}
+    stXMLheaders = {'Content-Type': 'text/xml'}
+    stSOAPheaders = {'Content-Type': 'text/xml', 'SOAPAction': ""}
 
-parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
-
-if __name__ == "__main__":
+    parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     docLstRecording = etree.fromstring(rLstRecording.text.encode('utf-8'), parser=parser)
     with open('output/LstRecording.xml', 'w+') as outLstRecording:
         outLstRecording.write(etree.tostring(docLstRecording, pretty_print=True))
-    
+
     #Get complete RecordID list
 
     #Get Storage Access Ticket
@@ -60,22 +60,28 @@ if __name__ == "__main__":
     print "Storage Access Ticket Response:", rStorageAccessTicket
     rSATxml = etree.fromstring(rStorageAccessTicket.text.encode('utf-8'), parser=parser)
     sessionSAT = rSATxml[0][0][0].text
-    print sessionSAT
+    #print sessionSAT
 
     #Download NBR Storage File
     etDlNbrStorageFile[1][0][2].text = sessionSAT
-    with open('output/DlNbrStorageFile.xml', 'w+') as outDlNbrStorageFile:
+    with open('output/'+ basename + '/' + 'DlNbrStorageFile.xml', 'w+') as outDlNbrStorageFile:
         outDlNbrStorageFile.write(etree.tostring(etDlNbrStorageFile, pretty_print=True))
     etDlNbrStorageFile[1][0][0].text = siteID
     etDlNbrStorageFile[1][0][1].text = recordID
     etDlNbrStorageFile[1][0][2].text = sessionSAT
     rDlNbrStorageFile = requests.post(vaNBRstor, data=etree.tostring(etDlNbrStorageFile), headers=stSOAPheaders, stream=True)
-    dlFile = open('output/'  + recordID + '.txt', 'wb')
+    dlFile = open('output/' + basename + '/' + recordingName + '.xml', 'wb')
     for chunk in rDlNbrStorageFile.iter_content(chunk_size=512):
         if chunk:
             dlFile.write(chunk)
     dlFile.close()
-    f = open('output/'  + recordID + '.txt', 'rb').read().split('\r\n\r\n')
-    arf = open('output/' + recordID + '.arf', 'wb')
-    arf.write(f[3])
-    os.remove('output/'  + recordID + '.txt')
+    etDownloadData = etree.parse('output/'+ basename + '/' +recordingName+'.xml').getroot()
+    etDownloadResults = etDownloadData[0][0][1].text
+    if etDownloadResults == 'The recording you are looking for does not exist or is no longer available.':
+        print ("The requested recording, " + recordID + " no longer exists")
+        os.remove('output/' + basename + '/' + recordingName + '.xml')
+    else:
+        f = open('output/' + basename + '/' + recordingName + '.xml', 'rb').read().split('\r\n\r\n')
+        arf = open('output/' + basename + '/' + recordingName + '.arf', 'wb')
+        arf.write(f[3])
+        os.remove('output/' + basename + '/' + recordingName + '.xml')
