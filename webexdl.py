@@ -11,10 +11,11 @@ def downloader(recordID, recordingName,basename):
     sjNBRstor = 'https://nsj1wss.webex.com/nbr/services/NBRStorageService'
     sjNBRsvc = 'https://nsj1wss.webex.com/nbr/services/nbrXMLService'
 
+    #siteID = '164033'
     siteID = '325282'
     userID = 'recording'
     userPW = 'Fall2017'
-    #recordID = '86343502'
+    #recordID = '48432177'
     #recordingName = 'testrecording'
 
     output_path = "output" + '/' + basename

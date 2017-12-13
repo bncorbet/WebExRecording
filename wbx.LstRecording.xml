@@ -12,7 +12,7 @@
             xsi:type="java:com.webex.service.binding.ep.LstRecording">
             <listControl>
                 <startFrom>0</startFrom>
-                <maximumNum>175</maximumNum>
+                <maximumNum>0</maximumNum>
             </listControl>
             <returnSessionDetails>true</returnSessionDetails>
         </bodyContent>

@@ -15,7 +15,7 @@ result = [i for i in glob.glob('*.{}'.format(extension))]
 
 for file in result:
     basename = os.path.splitext(file)[0]
-    #print basename
+    print basename
     f = open(file, "rt")
     reader = csv.reader(f)
 
@@ -32,11 +32,12 @@ for file in result:
         if rownum == 0:
             header = row
             rownum += 1
+            #print row
         else:
             recordingID = row[0]
             recordingName = row[1]
             keepRecording = row[5]
-            if keepRecording == 'true' or keepRecording == 'TRUE':
+            if keepRecording == 'true' or keepRecording == 'TRUE' or keepRecording == 'yes' or keepRecording == 'Yes':
                 print recordingID
                 print recordingName
                 print keepRecording
